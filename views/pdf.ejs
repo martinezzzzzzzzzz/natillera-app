@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+
+<style>
+
+    body {
+        font-family: 'Times New Roman', serif;
+        padding: 10mm 14mm 6mm 14mm;
+        font-size: 14px;
+        line-height: 1.38;
+    }
+
+    .bold { font-weight: bold; }
+
+    .marca-agua {
+        position: fixed;
+        top: 29%;
+        left: 19%;
+        width: 62%;
+        opacity: 0.09;
+        z-index: -1;
+    }
+
+    p { margin: 5px 0; }
+
+    .tabla-contenedor {
+        margin: 15px auto;   /* centrada */
+        padding: 10px;
+        border: 1px solid #999;
+        border-radius: 4px;
+        width: 70%;           /* ←––––– ACHICAMOS LA TABLA */
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+
+    th {
+        background: #e53935;
+        color: white;
+        border: 1px solid black;
+        padding: 6px 0;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    td {
+        border: 1px solid black;
+        padding: 5px 8px;
+    }
+
+    .firmas-table {
+        width: 100%;
+        margin-top: 45px;
+        border-collapse: collapse;
+    }
+
+    .firmas-table td {
+        text-align: center;
+        border: none;
+        padding: 0 35px;
+    }
+
+    .firma-linea {
+        border-top: 1.3px solid black;
+        width: 90%;
+        margin: 0 auto;
+        height: 1px;
+        margin-bottom: 7px;
+        margin-top: 5px;
+    }
+
+    .cita-final {
+        margin-top: 25px;
+        font-size: 15px;
+        text-align: center;
+        font-weight: bold;
+        line-height: 1.28;
+    }
+
+</style>
+</head>
+
+<body>
+
+   <div style="width:100%; text-align:center; margin-bottom:15px;">
+    <img src="<%= logo %>" style="width:95px;">
+</div>
+
+
+    <!-- 🔥 TEXTO BÍBLICO COMO LO TENÍAS -->
+    <div style="
+        width: 100%;
+        text-align: center;
+        font-weight: bold;
+        font-size: 15px;
+        margin-bottom: 12px;
+        white-space: nowrap;
+    ">
+        Hay algo que vale más que el oro, la plata y el dinero; ¡¡es la Sabiduría!! Proverbios 16:16
+    </div>
+
+    <img class="marca-agua" src="<%= marca_agua %>">
+
+    <p>Medellín, 6 de diciembre</p>
+
+    <br>
+
+    <p class="bold"><%= nombre %></p>
+    <p class="bold" style="margin-bottom: 10px;">Asunto: Liquidación Ahorros</p>
+
+    <p>Cordial Saludo,</p>
+
+    <p>
+        Tenemos el gusto de presentarte la liquidación total de tus ahorros correspondientes al año 2024
+        (diciembre 2024 – noviembre 2025).
+    </p>
+
+    <p>
+        A continuación, encontrarás la relación de los valores que se recaudaron durante el año por conceptos
+        de cuota mensual o quincenal, además $1.000 por cada viernes y los rendimientos financieros obtenidos.
+    </p>
+
+    <p>➢ Su aporte mensual fue de $<%= aporte_mensual %> + $1.000 semanales</p>
+    <p>➢ Los intereses financieros sumaron $<%= intereses %></p>
+    <p>➢ Se descuenta un aporte por administración de $30.000</p>
+
+    <div class="tabla-contenedor">
+        <table>
+            <tr>
+                <th>CONCEPTO</th>
+                <th>VALOR</th>
+            </tr>
+            <tr>
+                <td>APORTES Y VIERNES</td>
+                <td>$<%= total_aportes %></td>
+            </tr>
+            <tr>
+                <td>INTERESES FINANCIEROS</td>
+                <td>$<%= intereses %></td>
+            </tr>
+            <tr>
+                <td>ACTIVIDADES</td>
+                <td>$<%= actividades %></td>
+            </tr>
+            <tr>
+                <td>MENOS APORTE ADMINISTRACIÓN</td>
+                <td>-$30.000</td>
+            </tr>
+            <tr class="total-row">
+                <td>TOTAL</td>
+                <td>$<%= total_final %></td>
+            </tr>
+        </table>
+    </div>
+
+    <p>
+        Agradecemos mucho la confianza que depositaste en nosotros. Si deseas ver los movimientos contables,
+        estamos atentos para presentarlos cuando lo solicites.
+    </p>
+
+    <table class="firmas-table">
+    <tr>
+        <td>
+            <div class="firma-linea"></div>
+            Enrique Martínez Rodríguez <br>
+        </td>
+        <td>
+            <div class="firma-linea"></div>
+            Mónica M Valencia Giraldo <br>
+        </td>
+    </tr>
+</table>
+
+    <p class="cita-final">
+        Todo el que quiera ser sabio, debe empezar por obedecer a DIOS..!!<br>
+        Proverbios 1:7
+    </p>
+
+</body>
+</html>

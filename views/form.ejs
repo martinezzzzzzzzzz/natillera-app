@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Liquidación Natillera</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+        form { background: #fff; padding: 20px; border-radius: 8px; max-width: 500px; margin: auto; }
+        label { display: block; margin-top: 15px; font-weight: bold; }
+        input { width: 100%; padding: 8px; font-size: 14px; margin-top: 5px; box-sizing: border-box; }
+        button { margin-top: 20px; padding: 10px 15px; font-size: 16px; cursor: pointer; background: #e53935; color: #fff; border: none; border-radius: 4px; }
+
+        /* Estilos del buscador */
+        .autocomplete-container {
+            position: relative;
+            width: 100%;
+        }
+
+        #buscadorSocio {
+            width: 100%;
+            padding: 10px;
+            font-size: 14px;
+        }
+
+        .lista-socios {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ccc;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+            z-index: 2000;
+        }
+
+        .lista-item {
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        .lista-item:hover {
+            background: #eee;
+        }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/cleave.js@1.6.0/dist/cleave.min.js"></script>
+</head>
+<body>
+    <h1 style="text-align:center;">Generar Liquidación de Natillera</h1>
+
+    <form action="/generar" method="POST">
+
+        <!-- AUTOCOMPLETE -->
+        <label>Seleccionar socio:</label>
+        <div class="autocomplete-container">
+            <input type="text" id="buscadorSocio" placeholder="Buscar por nombre o ID...">
+            <div id="listaSocios" class="lista-socios"></div>
+        </div>
+
+        <!-- Campo oculto para enviar el ID -->
+        <input type="hidden" name="socio" id="socioID">
+
+        <label>Aporte mensual:</label>
+        <input type="text" name="aporte_mensual" id="aporte-mensual" class="money-input" required>
+
+        <label>Total aportes y viernes:</label>
+        <input type="text" name="total_aportes" class="money-input" required>
+
+        <label>Intereses financieros:</label>
+        <input type="text" name="intereses" class="money-input" required>
+
+        <label>Actividades:</label>
+        <input type="text" name="actividades" class="money-input" required>
+
+        <label>Administración:</label>
+        <input type="text" value="-30.000,00" class="money-input" disabled>
+
+        <label>Total final:</label>
+        <input type="text" name="total_final" class="money-input" required>
+
+        <button type="submit">Generar PDF</button>
+    </form>
+
+<script>
+    const socios = <%- JSON.stringify(socios) %>;
+
+    const buscador = document.getElementById("buscadorSocio");
+    const lista = document.getElementById("listaSocios");
+    const idSocio = document.getElementById("socioID");
+    const aporteInput = document.getElementById("aporte-mensual");
+
+    const totalAportesInput = document.querySelector('input[name="total_aportes"]');
+    const interesesInput = document.querySelector('input[name="intereses"]');
+    const actividadesInput = document.querySelector('input[name="actividades"]');
+    const totalFinalInput = document.querySelector('input[name="total_final"]');
+
+    /* ============================
+       FUNCIÓN PARA CONVERTIR "50.000,00" → 50000
+       ============================ */
+    function convertirAValorNumerico(valorFormateado) {
+        if (!valorFormateado) return 0;
+
+        valorFormateado = valorFormateado.replace(/\./g, ''); // Quita miles
+        valorFormateado = valorFormateado.replace(/,/g, '.'); // Cambia coma decimal
+
+        return parseFloat(valorFormateado) || 0;
+    }
+
+    function mostrarListaCompleta() {
+        lista.innerHTML = "";
+        socios.forEach(s => agregarItem(s));
+        lista.style.display = "block";
+    }
+
+    function filtrar() {
+        const texto = buscador.value.toLowerCase();
+        lista.innerHTML = "";
+
+        const filtrados = socios.filter(s =>
+            s.Nombre.toLowerCase().includes(texto) ||
+            s.ID.toString().includes(texto)
+        );
+
+        filtrados.forEach(s => agregarItem(s));
+
+        lista.style.display = filtrados.length ? "block" : "none";
+    }
+
+    function agregarItem(socio) {
+        const item = document.createElement("div");
+        item.classList.add("lista-item");
+        item.textContent = `${socio.ID} - ${socio.Nombre}`;
+        item.addEventListener("click", () => seleccionar(socio));
+        lista.appendChild(item);
+    }
+
+    function seleccionar(socio) {
+        buscador.value = `${socio.ID} - ${socio.Nombre}`;
+        idSocio.value = socio.ID;
+
+        // Convertir aporte "$ 40.000,00" → 40000
+        let aporte = socio.AporteMensual.replace(/\$/g, '').trim();
+        aporte = convertirAValorNumerico(aporte);
+
+        // Colocar formateado
+        aporteInput.value = new Intl.NumberFormat("es-CO", { minimumFractionDigits: 2 }).format(aporte);
+
+        calcularValores(aporte);
+
+        lista.style.display = "none";
+    }
+
+    function calcularValores(aporte) {
+        const viernes = 52000;
+        const interesesFijos = 50000;
+        const actividades = 0;
+        const administracion = 30000;
+
+        const totalAportes = aporte * 12 + viernes;
+        const totalFinal = totalAportes + interesesFijos - administracion;
+
+        totalAportesInput.value = new Intl.NumberFormat("es-CO", { minimumFractionDigits: 2 }).format(totalAportes);
+        interesesInput.value = new Intl.NumberFormat("es-CO", { minimumFractionDigits: 2 }).format(interesesFijos);
+        actividadesInput.value = new Intl.NumberFormat("es-CO", { minimumFractionDigits: 2 }).format(actividades);
+        totalFinalInput.value = new Intl.NumberFormat("es-CO", { minimumFractionDigits: 2 }).format(totalFinal);
+    }
+
+    buscador.addEventListener("focus", mostrarListaCompleta);
+    buscador.addEventListener("input", filtrar);
+
+    document.addEventListener("click", e => {
+        if (!e.target.closest(".autocomplete-container")) {
+            lista.style.display = "none";
+        }
+    });
+
+    // Cleave para inputs monetarios
+    document.querySelectorAll('.money-input').forEach(input => {
+        new Cleave(input, {
+            numeral: true,
+            numeralThousandsGroupStyle: 'thousand',
+            numeralDecimalMark: ',',
+            delimiter: '.',
+            numeralDecimalScale: 2
+        });
+    });
+</script>
+
+</body>
+</html>

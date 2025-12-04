@@ -10,7 +10,11 @@
         input { width: 100%; padding: 8px; font-size: 14px; margin-top: 5px; box-sizing: border-box; }
         button { margin-top: 20px; padding: 10px 15px; font-size: 16px; cursor: pointer; background: #e53935; color: #fff; border: none; border-radius: 4px; }
 
-        /* Estilos del buscador */
+        #recalcularBtn {
+            background: #1565c0;
+            display: none;
+        }
+
         .autocomplete-container {
             position: relative;
             width: 100%;
@@ -52,14 +56,12 @@
 
     <form action="/generar" method="POST">
 
-        <!-- AUTOCOMPLETE -->
         <label>Seleccionar socio:</label>
         <div class="autocomplete-container">
             <input type="text" id="buscadorSocio" placeholder="Buscar por nombre o ID...">
             <div id="listaSocios" class="lista-socios"></div>
         </div>
 
-        <!-- Campo oculto para enviar el ID -->
         <input type="hidden" name="socio" id="socioID">
 
         <label>Aporte mensual:</label>
@@ -75,10 +77,13 @@
         <input type="text" name="actividades" class="money-input" required>
 
         <label>Administración:</label>
-        <input type="text" value="-30.000,00" class="money-input" disabled>
+        <input type="text" value="-30.000,00" id="administracion" class="money-input" disabled>
 
         <label>Total final:</label>
         <input type="text" name="total_final" class="money-input" required>
+
+        <!-- BOTÓN NUEVO -->
+        <button type="button" id="recalcularBtn">Recalcular total</button>
 
         <button type="submit">Generar PDF</button>
     </form>
@@ -89,23 +94,27 @@
     const buscador = document.getElementById("buscadorSocio");
     const lista = document.getElementById("listaSocios");
     const idSocio = document.getElementById("socioID");
-    const aporteInput = document.getElementById("aporte-mensual");
 
+    const aporteInput = document.getElementById("aporte-mensual");
     const totalAportesInput = document.querySelector('input[name="total_aportes"]');
     const interesesInput = document.querySelector('input[name="intereses"]');
     const actividadesInput = document.querySelector('input[name="actividades"]');
+    const adminInput = document.getElementById("administracion");
     const totalFinalInput = document.querySelector('input[name="total_final"]');
 
-    /* ============================
-       FUNCIÓN PARA CONVERTIR "50.000,00" → 50000
-       ============================ */
+    const btnRecalcular = document.getElementById("recalcularBtn");
+
     function convertirAValorNumerico(valorFormateado) {
         if (!valorFormateado) return 0;
 
-        valorFormateado = valorFormateado.replace(/\./g, ''); // Quita miles
-        valorFormateado = valorFormateado.replace(/,/g, '.'); // Cambia coma decimal
+        valorFormateado = valorFormateado.replace(/\./g, '');
+        valorFormateado = valorFormateado.replace(/,/g, '.');
 
         return parseFloat(valorFormateado) || 0;
+    }
+
+    function formatear(num) {
+        return new Intl.NumberFormat("es-CO", { minimumFractionDigits: 2 }).format(num);
     }
 
     function mostrarListaCompleta() {
@@ -124,7 +133,6 @@
         );
 
         filtrados.forEach(s => agregarItem(s));
-
         lista.style.display = filtrados.length ? "block" : "none";
     }
 
@@ -140,12 +148,10 @@
         buscador.value = `${socio.ID} - ${socio.Nombre}`;
         idSocio.value = socio.ID;
 
-        // Convertir aporte "$ 40.000,00" → 40000
         let aporte = socio.AporteMensual.replace(/\$/g, '').trim();
         aporte = convertirAValorNumerico(aporte);
 
-        // Colocar formateado
-        aporteInput.value = new Intl.NumberFormat("es-CO", { minimumFractionDigits: 2 }).format(aporte);
+        aporteInput.value = formatear(aporte);
 
         calcularValores(aporte);
 
@@ -161,11 +167,34 @@
         const totalAportes = aporte * 12 + viernes;
         const totalFinal = totalAportes + interesesFijos - administracion;
 
-        totalAportesInput.value = new Intl.NumberFormat("es-CO", { minimumFractionDigits: 2 }).format(totalAportes);
-        interesesInput.value = new Intl.NumberFormat("es-CO", { minimumFractionDigits: 2 }).format(interesesFijos);
-        actividadesInput.value = new Intl.NumberFormat("es-CO", { minimumFractionDigits: 2 }).format(actividades);
-        totalFinalInput.value = new Intl.NumberFormat("es-CO", { minimumFractionDigits: 2 }).format(totalFinal);
+        totalAportesInput.value = formatear(totalAportes);
+        interesesInput.value = formatear(interesesFijos);
+        actividadesInput.value = formatear(actividades);
+        totalFinalInput.value = formatear(totalFinal);
+
+        btnRecalcular.style.display = "none";
     }
+
+    function recalcularConCambios() {
+        const aporte = convertirAValorNumerico(aporteInput.value);
+        const totalAportes = convertirAValorNumerico(totalAportesInput.value);
+        const intereses = convertirAValorNumerico(interesesInput.value);
+        const actividades = convertirAValorNumerico(actividadesInput.value);
+        const admin = convertirAValorNumerico(adminInput.value);
+
+        const totalFinal = totalAportes + intereses + actividades + admin;
+
+        totalFinalInput.value = formatear(totalFinal);
+    }
+
+    function activarBotonRecalcular() {
+        btnRecalcular.style.display = "block";
+    }
+
+    [aporteInput, totalAportesInput, interesesInput, actividadesInput]
+        .forEach(campo => campo.addEventListener("input", activarBotonRecalcular));
+
+    btnRecalcular.addEventListener("click", recalcularConCambios);
 
     buscador.addEventListener("focus", mostrarListaCompleta);
     buscador.addEventListener("input", filtrar);
@@ -176,7 +205,6 @@
         }
     });
 
-    // Cleave para inputs monetarios
     document.querySelectorAll('.money-input').forEach(input => {
         new Cleave(input, {
             numeral: true,

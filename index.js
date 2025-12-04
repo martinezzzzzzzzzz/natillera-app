@@ -1,7 +1,7 @@
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
-const pdf = require("html-pdf");
+const puppeteer = require("puppeteer");
 
 // Función para convertir imágenes a Base64
 function imgToBase64(relativePath) {
@@ -26,7 +26,7 @@ app.get("/", (req, res) => {
 });
 
 // Ruta POST para generar el PDF
-app.post("/generar", (req, res) => {
+app.post("/generar", async (req, res) => {
     const {
         socio,
         aporte_mensual,
@@ -36,7 +36,7 @@ app.post("/generar", (req, res) => {
         total_final
     } = req.body;
 
-    // Buscar el nombre del socio seleccionado en el JSON
+    // Buscar el nombre del socio seleccionado
     const socioSeleccionado = socios.find(s => s.ID == socio);
     const nombre = socioSeleccionado ? socioSeleccionado.Nombre : "Desconocido";
 
@@ -56,18 +56,50 @@ app.post("/generar", (req, res) => {
 
     const filePath = path.join(__dirname, "pdfs", `${nombre}.pdf`);
 
-    app.render("pdf", htmlData, (err, html) => {
+    app.render("pdf", htmlData, async (err, html) => {
         if (err) return res.send("Error generando plantilla: " + err);
 
-        pdf.create(html, {
-            format: "Letter",
-            border: "15mm"
-        }).toFile(filePath, (err) => {
-            if (err) return res.send("Error generando PDF: " + err);
+        try {
+            // CONFIGURACIÓN ESPECIAL PARA RAILWAY
+            const browser = await puppeteer.launch({
+                headless: true,
+                executablePath: puppeteer.executablePath(),
+                args: [
+                    "--no-sandbox",
+                    "--disable-setuid-sandbox",
+                    "--disable-dev-shm-usage",
+                    "--disable-gpu",
+                    "--single-process",
+                    "--no-zygote"
+                ]
+            });
+
+            const page = await browser.newPage();
+            await page.setContent(html, { waitUntil: "networkidle0" });
+
+            await page.pdf({
+                path: filePath,
+                format: "Letter",
+                printBackground: true,
+                margin: {
+                    top: "15mm",
+                    bottom: "15mm",
+                    left: "15mm",
+                    right: "15mm"
+                }
+            });
+
+            await browser.close();
 
             res.download(filePath);
-        });
+
+        } catch (error) {
+            console.error("ERROR AL GENERAR PDF:", error);
+            return res.send("Error generando PDF: " + error);
+        }
     });
 });
 
-app.listen(3000, () => console.log("Servidor en: http://localhost:3000"));
+app.listen(3000, () =>
+    console.log("Servidor en: http://localhost:3000")
+);

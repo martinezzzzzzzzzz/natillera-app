@@ -3,11 +3,12 @@ const fs = require("fs");
 const path = require("path");
 const puppeteer = require("puppeteer");
 
-// Función para convertir imágenes a Base64
+// Función para convertir imágenes a Base64, detectando tipo según extensión
 function imgToBase64(relativePath) {
     const filePath = path.join(__dirname, relativePath);
     const img = fs.readFileSync(filePath);
-    return `data:image/png;base64,${img.toString("base64")}`;
+    const ext = path.extname(filePath).toLowerCase().replace('.', '');
+    return `data:image/${ext};base64,${img.toString("base64")}`;
 }
 
 // Cargar JSON de socios
@@ -20,12 +21,12 @@ app.use(express.static("public"));
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
-// Ruta principal: renderiza el formulario con los socios
+// Ruta principal
 app.get("/", (req, res) => {
     res.render("form", { socios });
 });
 
-// Ruta POST para generar el PDF
+// Ruta POST para generar PDF
 app.post("/generar", async (req, res) => {
     const {
         socio,
@@ -36,12 +37,14 @@ app.post("/generar", async (req, res) => {
         total_final
     } = req.body;
 
-    // Buscar el nombre del socio seleccionado
     const socioSeleccionado = socios.find(s => s.ID == socio);
     const nombre = socioSeleccionado ? socioSeleccionado.Nombre : "Desconocido";
 
+    // Convertimos todas las imágenes a Base64
     const logo = imgToBase64("public/logo_new.png");
     const marca_agua = imgToBase64("public/logo_new.png");
+    const firmaEnrique = imgToBase64("public/Firmas/Firma_enrique.png");
+    const firmaMonica = imgToBase64("public/Firmas/Firma_monica.jpeg");
 
     const htmlData = {
         nombre,
@@ -51,16 +54,16 @@ app.post("/generar", async (req, res) => {
         actividades,
         total_final,
         logo,
-        marca_agua
+        marca_agua,
+        firmaEnrique,
+        firmaMonica
     };
-
-    const filePath = path.join(__dirname, "pdfs", `${nombre}.pdf`);
 
     app.render("pdf", htmlData, async (err, html) => {
         if (err) return res.send("Error generando plantilla: " + err);
 
         try {
-            // CONFIGURACIÓN ESPECIAL PARA RAILWAY
+            // Configuración estable para Puppeteer
             const browser = await puppeteer.launch({
                 headless: true,
                 executablePath: puppeteer.executablePath(),
@@ -69,16 +72,17 @@ app.post("/generar", async (req, res) => {
                     "--disable-setuid-sandbox",
                     "--disable-dev-shm-usage",
                     "--disable-gpu",
-                    "--single-process",
+                    "--disable-accelerated-2d-canvas",
+                    "--no-first-run",
                     "--no-zygote"
                 ]
             });
 
             const page = await browser.newPage();
-            await page.setContent(html, { waitUntil: "networkidle0" });
 
-            await page.pdf({
-                path: filePath,
+            await page.setContent(html, { waitUntil: "load" });
+
+            const pdfBuffer = await page.pdf({
                 format: "Letter",
                 printBackground: true,
                 margin: {
@@ -91,7 +95,10 @@ app.post("/generar", async (req, res) => {
 
             await browser.close();
 
-            res.download(filePath);
+            // Mandamos el PDF directo sin guardarlo en disco
+            res.setHeader("Content-Type", "application/pdf");
+            res.setHeader("Content-Disposition", `attachment; filename="${nombre}.pdf"`);
+            return res.send(pdfBuffer);
 
         } catch (error) {
             console.error("ERROR AL GENERAR PDF:", error);

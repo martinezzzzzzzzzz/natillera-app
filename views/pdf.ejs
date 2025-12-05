@@ -7,13 +7,16 @@
 
     body {
         font-family: 'Times New Roman', serif;
-        padding: 10mm 14mm 6mm 14mm;
+        padding: 12mm 14mm 20mm 14mm; /* espacio extra para el footer */
         font-size: 14px;
         line-height: 1.38;
+        position: relative;
+        min-height: 100%;
     }
 
     .bold { font-weight: bold; }
 
+    /* Marca de agua en Base64 */
     .marca-agua {
         position: fixed;
         top: 29%;
@@ -26,11 +29,11 @@
     p { margin: 5px 0; }
 
     .tabla-contenedor {
-        margin: 15px auto;   /* centrada */
+        margin: 15px auto;
         padding: 10px;
         border: 1px solid #999;
         border-radius: 4px;
-        width: 70%;           /* ←––––– ACHICAMOS LA TABLA */
+        width: 70%;
     }
 
     table {
@@ -53,33 +56,41 @@
         padding: 5px 8px;
     }
 
-    .firmas-table {
-        width: 100%;
-        margin-top: 45px;
-        border-collapse: collapse;
+    /* ZONA ESTABLE PARA FIRMAS */
+    .zona-firmas {
+        margin-top: 50px;
+        height: 120px; /* espacio amplio para las firmas sin salto de página */
+        display: flex;
+        justify-content: space-evenly;
+        align-items: flex-end;
     }
 
-    .firmas-table td {
+    .firma-box {
+        width: 40%;
         text-align: center;
-        border: none;
-        padding: 0 35px;
+    }
+
+    .firma-img {
+        width: 160px;
+        height: auto;
+        margin-bottom: 5px;
     }
 
     .firma-linea {
         border-top: 1.3px solid black;
         width: 90%;
-        margin: 0 auto;
-        height: 1px;
-        margin-bottom: 7px;
-        margin-top: 5px;
+        margin: 0 auto 8px auto;
     }
 
-    .cita-final {
-        margin-top: 25px;
-        font-size: 15px;
+    /* PIE DE PÁGINA REAL */
+    .footer {
+        position: fixed;
+        bottom: 8mm;
+        left: 0;
+        right: 0;
         text-align: center;
+        font-size: 15px;
         font-weight: bold;
-        line-height: 1.28;
     }
 
 </style>
@@ -87,23 +98,7 @@
 
 <body>
 
-   <div style="width:100%; text-align:center; margin-bottom:15px;">
-    <img src="<%= logo %>" style="width:95px;">
-</div>
-
-
-    <!-- 🔥 TEXTO BÍBLICO COMO LO TENÍAS -->
-    <div style="
-        width: 100%;
-        text-align: center;
-        font-weight: bold;
-        font-size: 15px;
-        margin-bottom: 12px;
-        white-space: nowrap;
-    ">
-        Hay algo que vale más que el oro, la plata y el dinero; ¡¡es la Sabiduría!! Proverbios 16:16
-    </div>
-
+    <!-- Marca de agua Base64 -->
     <img class="marca-agua" src="<%= marca_agua %>">
 
     <p>Medellín, 6 de diciembre</p>
@@ -163,23 +158,26 @@
         estamos atentos para presentarlos cuando lo solicites.
     </p>
 
-    <table class="firmas-table">
-    <tr>
-        <td>
+    <!-- ZONA DE FIRMAS CON BASE64 -->
+    <div class="zona-firmas">
+        <div class="firma-box">
+            <img src="<%= firmaEnrique %>" class="firma-img">
             <div class="firma-linea"></div>
-            Enrique Martínez Rodríguez <br>
-        </td>
-        <td>
-            <div class="firma-linea"></div>
-            Mónica M Valencia Giraldo <br>
-        </td>
-    </tr>
-</table>
+            Enrique Martínez Rodríguez
+        </div>
 
-    <p class="cita-final">
-        Todo el que quiera ser sabio, debe empezar por obedecer a DIOS..!!<br>
-        Proverbios 1:7
-    </p>
+        <div class="firma-box">
+            <img src="<%= firmaMonica %>" class="firma-img">
+            <div class="firma-linea"></div>
+            Mónica M Valencia Giraldo
+        </div>
+    </div>
+
+    <!-- PIE DE PÁGINA FIJO -->
+    <div class="footer">
+        Natifamily 2025 -
+        "Una comunidad, un propósito, un camino hacia el bienestar colectivo."
+    </div>
 
 </body>
 </html>

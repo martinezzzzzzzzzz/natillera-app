@@ -2,60 +2,66 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Liquidación Natillera</title>
+    <title>Natifamily</title>
+
+    <!-- Favicon para la pestaña -->
+    <link rel="icon" type="image/png" href="/logo_new.png">
+
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
-        form { background: #fff; padding: 20px; border-radius: 8px; max-width: 500px; margin: auto; }
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            background: #f5f5f5; 
+            position: relative;
+        }
+
+        h1 { text-align: center; }
+
+        form { 
+            background: #fff; 
+            padding: 20px; 
+            border-radius: 8px; 
+            max-width: 500px; 
+            margin: 40px auto 0 auto; 
+        }
+
         label { display: block; margin-top: 15px; font-weight: bold; }
         input { width: 100%; padding: 8px; font-size: 14px; margin-top: 5px; box-sizing: border-box; }
         button { margin-top: 20px; padding: 10px 15px; font-size: 16px; cursor: pointer; background: #e53935; color: #fff; border: none; border-radius: 4px; }
+        #recalcularBtn { background: #1565c0; display: none; }
 
-        #recalcularBtn {
-            background: #1565c0;
-            display: none;
-        }
-
-        .autocomplete-container {
-            position: relative;
-            width: 100%;
-        }
-
-        #buscadorSocio {
-            width: 100%;
-            padding: 10px;
-            font-size: 14px;
-        }
-
+        .autocomplete-container { position: relative; width: 100%; }
+        #buscadorSocio { width: 100%; padding: 10px; font-size: 14px; }
         .lista-socios {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: white;
-            border: 1px solid #ccc;
-            max-height: 200px;
-            overflow-y: auto;
-            display: none;
-            z-index: 2000;
+            position: absolute; top: 100%; left: 0; right: 0;
+            background: white; border: 1px solid #ccc;
+            max-height: 200px; overflow-y: auto;
+            display: none; z-index: 2000;
         }
+        .lista-item { padding: 10px; cursor: pointer; }
+        .lista-item:hover { background: #eee; }
 
-        .lista-item {
-            padding: 10px;
-            cursor: pointer;
-        }
-
-        .lista-item:hover {
-            background: #eee;
+        /* Logo flotante arriba a la derecha en el body */
+        .logo-float {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 80px;
+            height: auto;
+            z-index: 1000;
         }
     </style>
 
     <script src="https://cdn.jsdelivr.net/npm/cleave.js@1.6.0/dist/cleave.min.js"></script>
 </head>
 <body>
-    <h1 style="text-align:center;">Generar Liquidación de Natillera</h1>
+
+    <!-- Logo flotante arriba a la derecha -->
+    <img src="/logo_new.png" alt="Logo" class="logo-float">
+
+    <h1>Generar Liquidación </h1>
 
     <form action="/generar" method="POST">
-
         <label>Seleccionar socio:</label>
         <div class="autocomplete-container">
             <input type="text" id="buscadorSocio" placeholder="Buscar por nombre o ID...">
@@ -82,9 +88,7 @@
         <label>Total final:</label>
         <input type="text" name="total_final" class="money-input" required>
 
-        <!-- BOTÓN NUEVO -->
         <button type="button" id="recalcularBtn">Recalcular total</button>
-
         <button type="submit">Generar PDF</button>
     </form>
 
@@ -106,10 +110,8 @@
 
     function convertirAValorNumerico(valorFormateado) {
         if (!valorFormateado) return 0;
-
         valorFormateado = valorFormateado.replace(/\./g, '');
         valorFormateado = valorFormateado.replace(/,/g, '.');
-
         return parseFloat(valorFormateado) || 0;
     }
 
@@ -126,12 +128,10 @@
     function filtrar() {
         const texto = buscador.value.toLowerCase();
         lista.innerHTML = "";
-
         const filtrados = socios.filter(s =>
             s.Nombre.toLowerCase().includes(texto) ||
             s.ID.toString().includes(texto)
         );
-
         filtrados.forEach(s => agregarItem(s));
         lista.style.display = filtrados.length ? "block" : "none";
     }

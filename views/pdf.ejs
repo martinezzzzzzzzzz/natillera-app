@@ -16,6 +16,16 @@
 
     .bold { font-weight: bold; }
 
+    /* Logo flotante arriba a la derecha */
+    .logo-flotante {
+        position: absolute;
+        top: 15px;
+        right: 14mm;
+        width: 120px;
+        height: auto;
+        z-index: 10;
+    }
+
     /* Marca de agua en Base64 */
     .marca-agua {
         position: fixed;
@@ -97,6 +107,9 @@
 </head>
 
 <body>
+
+    <!-- Logo flotante Base64 -->
+    <img src="<%= logo %>" class="logo-flotante">
 
     <!-- Marca de agua Base64 -->
     <img class="marca-agua" src="<%= marca_agua %>">
